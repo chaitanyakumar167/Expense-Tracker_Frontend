@@ -1,11 +1,7 @@
 const form = document.getElementById("form");
 const submitbtn = document.getElementById("submit");
-const name1 = document.getElementById("name");
 const email = document.getElementById("email");
-const number = document.getElementById("number");
 const password = document.getElementById("password");
-const time = document.getElementById("time");
-const list = document.getElementById("list");
 
 form.addEventListener("submit", async function (e) {
   if (!form.checkValidity()) {
@@ -13,18 +9,22 @@ form.addEventListener("submit", async function (e) {
   } else {
     e.preventDefault();
 
-    let myobj = {
-      name: name1.value,
+    let logInDetails = {
       email: email.value,
-      number: number.value,
       password: password.value,
     };
 
-    const res = await axios
-      .post("http://localhost:4000/add-user", myobj)
-      .catch((err) => console.log(err));
-    if (res) {
-      myobj.id = res.data;
+    try {
+      const res = await axios.post(
+        "http://localhost:4000/user/login",
+        logInDetails
+      );
+    } catch (error) {
+      if (error.response.status === 404 || error.response.status === 403) {
+        document.body.innerHTML += `<div style='color:red;'>${error.response.data.error}</div>`;
+      } else {
+        document.body.innerHTML += `<div style='color:red;'>${error}</div>`;
+      }
     }
 
     name1.value = "";
