@@ -31,7 +31,7 @@ form.addEventListener("submit", async function (e) {
       }
     } catch (error) {
       if (error.response.status === 409) {
-        document.body.innerHTML += `<div style='color:red;'>${error.response.data.error}</div>`;
+        document.body.innerHTML += `<div style='color:red;'>${error.response.data.message}</div>`;
       } else {
         document.body.innerHTML += `<div style='color:red;'>${error}</div>`;
       }
