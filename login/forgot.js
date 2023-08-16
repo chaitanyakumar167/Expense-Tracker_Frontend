@@ -14,7 +14,7 @@ form.addEventListener("submit", async function (e) {
 
     try {
       const res = await axios.post(
-        "http://localhost:4000/forgot/forgotpassword",
+        "http://localhost:4000/password/forgotpassword",
         obj
       );
     } catch (error) {

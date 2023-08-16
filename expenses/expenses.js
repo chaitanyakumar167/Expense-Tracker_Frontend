@@ -135,12 +135,18 @@ const ispremium = async (e) => {
       headers: { Authorization: token },
     }
   );
+  const premium = response.data;
+  localStorage.setItem("pro", premium);
   if (response.data) {
     btnBuyPremium.remove();
     const premiumUser = document.createElement("h3");
     premiumUser.className = "float-right";
     premiumUser.textContent = "Premium Member";
     premium.appendChild(premiumUser);
+    const generateReport = document.createElement("a");
+    generateReport.href = "./day-to-day-expenses.html";
+    generateReport.className = "btn btn-outline-dark text-white";
+    premium.appendChild(generateReport);
   }
 };
 ispremium();
