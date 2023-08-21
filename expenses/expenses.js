@@ -5,11 +5,20 @@ const category = document.getElementById("category");
 const amount = document.getElementById("amount");
 const description = document.getElementById("description");
 
+const pagination = document.getElementById("pagination");
+
 const btnBuyPremium = document.getElementById("rzp-button1");
+const btnDownload = document.getElementById("download");
 const premium = document.getElementById("premium");
 const btnLeaderBoard = document.getElementById("btn_leader_board");
 const leaderBoardTitle = document.getElementById("leader_board_title");
 const leaderBoardList = document.getElementById("leader_board_list");
+const btnDownloadHistory = document.getElementById("btn_download_history");
+const DownloadHistoryTitle = document.getElementById("download_history_title");
+const DownloadHistoryContainer = document.getElementById(
+  "download_history_container"
+);
+const DownloadHistoryList = document.getElementById("download_history_list");
 
 const token = localStorage.getItem("token");
 
@@ -79,19 +88,14 @@ function show(obj) {
   itemList.appendChild(li);
 }
 
-function showAllExpenses() {
-  itemList.innerHTML = "";
-  axios
-    .get("http://localhost:4000/user/all-expenses", {
-      headers: { Authorization: token },
-    })
-    .then((res) => {
-      const data = res.data;
-      for (let i = 0; i < data.length; i++) {
-        show(data[i]);
-      }
-    })
-    .catch((err) => console.log(err));
+async function showAllExpenses() {
+  const page = 1;
+  const response = await axios.get(
+    `http://localhost:4000/user/expenses?page=${page}`,
+    { headers: { Authorization: token } }
+  );
+  listExpenses(response.data.Expenses);
+  showpagination(response.data);
 }
 
 window.addEventListener("DOMContentLoaded", showAllExpenses);
@@ -135,18 +139,14 @@ const ispremium = async (e) => {
       headers: { Authorization: token },
     }
   );
-  const premium = response.data;
-  localStorage.setItem("pro", premium);
+  const premiumuser = response.data;
+  localStorage.setItem("pro", premiumuser);
   if (response.data) {
     btnBuyPremium.remove();
     const premiumUser = document.createElement("h3");
     premiumUser.className = "float-right";
     premiumUser.textContent = "Premium Member";
     premium.appendChild(premiumUser);
-    const generateReport = document.createElement("a");
-    generateReport.href = "./day-to-day-expenses.html";
-    generateReport.className = "btn btn-outline-dark text-white";
-    premium.appendChild(generateReport);
   }
 };
 ispremium();
@@ -177,4 +177,118 @@ function showLeaderBoard(obj) {
     " - " +
     obj.totalExpenses;
   leaderBoardList.appendChild(li);
+}
+
+if (!localStorage.getItem("pro")) {
+  download.disabled = true;
+  btnDownloadHistory.disabled = true;
+  DownloadHistoryContainer.style.display = "none";
+}
+
+btnDownload.onclick = async () => {
+  try {
+    if (localStorage.getItem("pro")) {
+      const response = await axios.get(
+        "http://localhost:4000/premium/download",
+        {
+          headers: { Authorization: token },
+        }
+      );
+      if (response.status === 200) {
+        let a = document.createElement("a");
+        a.href = response.data.fileURL;
+        a.download = "myexpense.csv";
+        a.click();
+      } else {
+        throw new Error(response.data.message);
+      }
+    }
+  } catch (error) {
+    showError(error);
+  }
+};
+
+function showError(err) {
+  document.body.innerHTML += `<div style='color:red;'>${err}</div>`;
+}
+
+btnDownloadHistory.onclick = async () => {
+  const response = await axios.get(
+    "http://localhost:4000/premium/alldownloadhistory",
+    { headers: { Authorization: token } }
+  );
+  DownloadHistoryList.innerHTML = "";
+  const arr = response.data.downloadHistory;
+  for (let i = 0; i < arr.length; i++) {
+    showAllDownloads(arr[i]);
+  }
+};
+
+function showAllDownloads(obj) {
+  const tr = document.createElement("tr");
+  const urlTh = document.createElement("th");
+  const a = document.createElement("a");
+  a.href = obj.url;
+  a.textContent = "Download";
+  urlTh.appendChild(a);
+  const dateTh = document.createElement("th");
+  dateTh.textContent = obj.createdAt;
+  tr.appendChild(urlTh);
+  tr.appendChild(dateTh);
+  DownloadHistoryList.appendChild(tr);
+}
+
+function showpagination({
+  currentPage,
+  hasNextPage,
+  hasPreviousPage,
+  nextPage,
+  previousPage,
+  lastPage,
+}) {
+  pagination.innerHTML = "";
+  if (hasPreviousPage) {
+    const btn2 = document.createElement("button");
+    btn2.innerHTML = previousPage;
+    console.log(previousPage);
+    btn2.addEventListener("click", () => showExpenses(previousPage));
+    pagination.appendChild(btn2);
+  }
+  const btn1 = document.createElement("button");
+  btn1.innerHTML = `<h3>${currentPage}</h3>`;
+  btn1.addEventListener("click", () => showExpenses(currentPage));
+  pagination.appendChild(btn1);
+
+  if (hasNextPage) {
+    const btn3 = document.createElement("button");
+    btn3.innerHTML = nextPage;
+    btn3.addEventListener("click", () => showExpenses(nextPage));
+    pagination.appendChild(btn3);
+  }
+  if (lastPage > 2) {
+    const btn4 = document.createElement("button");
+    btn4.innerHTML = lastPage;
+    btn4.addEventListener("click", () => showExpenses(lastPage));
+    pagination.appendChild(btn4);
+  }
+}
+
+async function showExpenses(page) {
+  try {
+    const response = await axios.get(
+      `http://localhost:4000/user/expenses?page=${page}`,
+      { headers: { Authorization: token } }
+    );
+    listExpenses(response.data.Expenses);
+    showpagination(response.data);
+  } catch (error) {
+    showError(error);
+  }
+}
+
+function listExpenses(expenses) {
+  itemList.innerHTML = "";
+  for (let i = 0; i < expenses.length; i++) {
+    show(expenses[i]);
+  }
 }
