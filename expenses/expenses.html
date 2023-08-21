@@ -76,7 +76,24 @@
     </div>
     <div class="container">
       <div class="card card-body">
-        <h2 class="title">Expenses</h2>
+        <div class="container">
+          <div class="row">
+            <div class="col-md-6">
+              <h2 class="title">Expenses</h2>
+            </div>
+            <div class="col-md-6 form-inline">
+              <label for="rowsperpage">Rows Per Page:-</label>
+              <input
+                type="number"
+                placeholder="Enter Number Of Rows Per Page"
+                id="rowsperpage"
+              />
+              <button type="submit" id="btnrows" class="btn btn-warning">
+                submit
+              </button>
+            </div>
+          </div>
+        </div>
         <ul id="items" class="list-group"></ul>
         <div class="card-body" id="pagination"></div>
       </div>

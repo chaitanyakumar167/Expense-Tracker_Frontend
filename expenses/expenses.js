@@ -6,6 +6,8 @@ const amount = document.getElementById("amount");
 const description = document.getElementById("description");
 
 const pagination = document.getElementById("pagination");
+const rowsPerPage = document.getElementById("rowsperpage");
+const btnrows = document.getElementById("btnrows");
 
 const btnBuyPremium = document.getElementById("rzp-button1");
 const btnDownload = document.getElementById("download");
@@ -21,6 +23,7 @@ const DownloadHistoryContainer = document.getElementById(
 const DownloadHistoryList = document.getElementById("download_history_list");
 
 const token = localStorage.getItem("token");
+const numberOfRows = localStorage.getItem("rows") || 10;
 
 // Form submit event
 form.addEventListener("submit", addItem);
@@ -90,8 +93,9 @@ function show(obj) {
 
 async function showAllExpenses() {
   const page = 1;
-  const response = await axios.get(
+  const response = await axios.post(
     `http://localhost:4000/user/expenses?page=${page}`,
+    { numberOfRows },
     { headers: { Authorization: token } }
   );
   listExpenses(response.data.Expenses);
@@ -250,7 +254,6 @@ function showpagination({
   if (hasPreviousPage) {
     const btn2 = document.createElement("button");
     btn2.innerHTML = previousPage;
-    console.log(previousPage);
     btn2.addEventListener("click", () => showExpenses(previousPage));
     pagination.appendChild(btn2);
   }
@@ -275,8 +278,9 @@ function showpagination({
 
 async function showExpenses(page) {
   try {
-    const response = await axios.get(
+    const response = await axios.post(
       `http://localhost:4000/user/expenses?page=${page}`,
+      { numberOfRows },
       { headers: { Authorization: token } }
     );
     listExpenses(response.data.Expenses);
@@ -292,3 +296,20 @@ function listExpenses(expenses) {
     show(expenses[i]);
   }
 }
+
+btnrows.onclick = async () => {
+  const rows = rowsPerPage.value;
+  rowsPerPage.value = "";
+  if (rows > 0) {
+    const page = 1;
+    localStorage.setItem("rows", rows);
+    const numberOfRows = localStorage.getItem("rows");
+    const response = await axios.post(
+      `http://localhost:4000/user/expenses?page=${page}`,
+      { numberOfRows },
+      { headers: { Authorization: token } }
+    );
+    listExpenses(response.data.Expenses);
+    showpagination(response.data);
+  }
+};
